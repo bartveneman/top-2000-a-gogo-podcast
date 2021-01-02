@@ -24,7 +24,8 @@ function fromDto(episodeDto) {
     number,
     mediaUri,
     relatedMedia: Array.isArray(relatedMedia) ? relatedMedia.map(fromRelatedMedia) : [],
-    path: `s${season.number}e${number}`
+    path: `s${season.number}e${number}`,
+    season,
   }
 }
 

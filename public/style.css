@@ -47,74 +47,11 @@ a:not([class]) {
   font-weight: 600;
   box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
   padding: 1rem;
+  border-top: 3px solid var(--red-400);
 }
 
 #header a {
   text-decoration: none;
-}
-
-#player {
-  grid-area: player;
-  padding: 1rem;
-}
-
-@media (min-width: 44rem) {
-  #player {
-    display: grid;
-    grid-template-columns: 1fr calc(300px + 6rem);
-    align-items: start;
-    padding: 3rem;
-  }
-
-  #player > section {
-    grid-column: 1;
-    padding: 0 3rem;
-    max-width: 50rem;
-    margin: 0 auto;
-  }
-
-  #player aside {
-    grid-column: 2;
-    padding: 0 3rem;
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-}
-
-#player > section {
-  display: grid;
-  grid-gap: 3rem;
-  align-items: start;
-}
-
-#player img {
-  margin: 0 auto;
-  display: block;
-  box-shadow: rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0.1) 0px 4px 6px -1px, rgba(0,0,0,0.06) 0px 2px 4px -1px;
-  border-radius: 1.5rem;
-}
-
-#player h1 {
-  font-weight: 600;
-  font-size: x-large;
-  text-align: center;
-}
-
-#player audio {
-  width: 100%;
-}
-
-#player p {
-  line-height: 1.5;
-}
-
-#player h2 {
-  font-size: large;
-  font-weight: 600;
-}
-
-#player aside li {
-  margin-top: 1rem;
 }
 
 #episodes {
@@ -214,4 +151,17 @@ a:not([class]) {
 
 #episodes a span {
   display: none;
+}
+
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border-width: 0;
 }

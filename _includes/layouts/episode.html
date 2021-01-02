@@ -8,8 +8,11 @@ layout: default
     <h1>
       {{ episode.title }}
     </h1>
+    <p role="doc-subtitle">Seizoen {{ episode.season.number }} aflevering {{ episode.number }}</p>
+
     <p>{{ episode.description }}</p>
-    <audio controls="" src="{{ episode.mediaUri }}" volume="0.5"></audio>
+
+    {% include ../components/player.liquid audioUri: episode.mediaUri %}
   </section>
 
   {% if episode.relatedMedia.length > 0 %}

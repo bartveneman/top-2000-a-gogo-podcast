@@ -1,0 +1,194 @@
+<link rel="stylesheet" href="/public/audio-player.css">
+
+<div id="controls">
+  <audio src="{{ audioUri }}"></audio>
+
+  <div class="audio-controls">
+    <div class="audio-play-toggle">
+      <button class="play-toggle" id="playToggle" data-state="paused">
+        <span class="play" aria-label="Play audio">
+          <svg viewbox="0 0 20 20" width="60" height="60" aria-hidden="true">
+            <polygon points="4 4 16 10 4 16"></polygon>
+          </svg>
+        </span>
+        <span class="pause" aria-label="Pause audio">
+          <svg viewbox="0 0 20 20" width="60" height="60" aria-hidden="true">
+            <path d="M5,4 L8,4 L8,16 L5,16 L5,4 Z M12,4 L15,4 L15,16 L12,16 L12,4 Z"></path>
+          </svg>
+        </span>
+      </button>
+    </div>
+
+
+    <div class="playback-bar">
+      <progress id="progress" value="0" max="1" step="0.01"></progress>
+      <input id="scrubber" type="range" value="0" max="1" step="0.001"/>
+    </div>
+
+    <div class="time-indicators" id="timeline">
+      <span class="time-indicator" id="currentTime">
+        <span class="sr-only">Current time:</span> 0:00:00
+      </span>
+      <span class="time-indicator" id="durationTime">
+        <span class="sr-only">Total time:</span> 0:00:00
+      </span>
+    </div>
+  </div>
+</div>
+
+<input type="hidden" id="episode-details" value='{{ episode|json }}'>
+
+<script type="module">
+  import { createMachine, interpret, assign } from 'https://cdn.skypack.dev/xstate'
+
+  const settings = JSON.parse(document.querySelector('#episode-details').value)
+  const playToggle = document.querySelector('#playToggle') // <button>
+  const audio = document.querySelector('audio') // <audio>
+  const currentTime = document.querySelector('#currentTime') // <time>
+  const durationTime = document.querySelector('#durationTime') // <time>
+  const scrubber = document.querySelector('#scrubber') // <input type=range>
+  const progress = document.querySelector('#progress') // <progress>
+
+  const machine = createMachine({
+    initial: 'initial',
+    context: {
+      id: settings.path,
+      currentTime: sessionStorage.getItem('currentTime-' + settings.path), // (s)
+      durationTime: audio.duration, // (s)
+    },
+    on: {
+      durationchange: {
+        actions: [
+          assign({
+            durationTime: (context, event) => event.target.duration
+          }),
+          'renderDurationTime'
+        ]
+      },
+      timeupdate: {
+        actions: [
+          assign({
+            currentTime: (context, event) => event.target.currentTime
+          }),
+          'renderCurrentTime',
+          'updateScrubber',
+          'storeCurrentTime'
+        ]
+      },
+      SCRUB: {
+        actions: [
+          assign({
+            currentTime: (context, event) => event.value * context.durationTime
+          }),
+          'updateAudioCurrentTime',
+          'renderCurrentTime',
+          'updateScrubber',
+          'storeCurrentTime'
+        ]
+      },
+      seeked: {
+        actions: [
+          assign({
+            currentTime: (context, event) => event.target.currentTime
+          }),
+          'renderCurrentTime',
+          'updateScrubber',
+          'storeCurrentTime'
+        ]
+      }
+    },
+    states: {
+      initial: {
+        on: {
+          '': {
+            target: 'paused',
+            actions: [
+              'updateAudioCurrentTime',
+              'renderDurationTime',
+              'renderCurrentTime',
+              'updateScrubber'
+            ]
+          }
+        }
+      },
+      paused: {
+        on: {
+          TOGGLE_PLAY: {
+            target: 'playing',
+            actions: ['playAudio']
+          },
+        }
+      },
+      playing: {
+        on: {
+          TOGGLE_PLAY: {
+            target: 'paused',
+            actions: ['pauseAudio']
+          },
+        }
+      }
+    }
+  }, {
+    actions: {
+      playAudio: () => {
+        audio.play()
+        playToggle.dataset.state = 'playing'
+      },
+      pauseAudio: () => {
+        audio.pause()
+        playToggle.dataset.state = 'paused'
+      },
+      updateAudioCurrentTime: (context, event) => {
+        audio.currentTime = context.currentTime
+      },
+      renderCurrentTime: (context) => {
+        currentTime.innerText = formatDuration(context.currentTime)
+      },
+      renderDurationTime: (context) => {
+        durationTime.innerText = formatDuration(context.durationTime)
+      },
+      updateScrubber: (context) => {
+        // update position of the <input type="range"> element
+        scrubber.value = context.currentTime / context.durationTime
+        // update position of the <progress> element
+        progress.value = context.currentTime / context.durationTime
+      },
+      storeCurrentTime: (context) => {
+        sessionStorage.setItem('currentTime-' + context.id, context.currentTime)
+      }
+    }
+  })
+
+  function formatDuration(duration) {
+    function formatTime(int, options) {
+      const leadingZero = options && options.leadingZero
+      return Math.floor(int).toString().padStart(leadingZero ? 2 : 0, '0')
+    }
+
+    const hours = Math.floor(duration / 60 / 60)
+    const minutes = (duration - (hours * 60 * 60)) / 60
+    const seconds = duration % 60
+
+    return [
+      formatTime(hours),
+      formatTime(minutes, { leadingZero: true }),
+      formatTime(seconds, { leadingZero: true })
+    ].join(':')
+  }
+
+  const service = interpret(machine).start()
+
+  playToggle.addEventListener('click', event => {
+    service.send({ type: 'TOGGLE_PLAY' })
+  })
+
+  audio.addEventListener('timeupdate', service.send)
+  audio.addEventListener('durationchange', service.send)
+
+  scrubber.addEventListener('input', event => {
+    service.send({
+      type: 'SCRUB',
+      value: parseFloat(event.target.value)
+    })
+  })
+</script>

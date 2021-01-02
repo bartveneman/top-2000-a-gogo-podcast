@@ -1,0 +1,158 @@
+#player {
+  grid-area: player;
+  padding: 1rem;
+}
+
+@media (min-width: 44rem) {
+  #player {
+    display: grid;
+    grid-template-columns: 1fr calc(300px + 6rem);
+    align-items: start;
+    padding: 3rem;
+  }
+
+  #player > section {
+    grid-column: 1;
+    padding: 0 3rem;
+    max-width: 50rem;
+    margin: 0 auto;
+  }
+
+  #player aside {
+    grid-column: 2;
+    padding: 0 3rem;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+}
+
+#player > section {
+  display: grid;
+  grid-gap: 3rem;
+  align-items: start;
+}
+
+#player img {
+  margin: 0 auto;
+  display: block;
+  box-shadow: rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0.1) 0px 4px 6px -1px, rgba(0,0,0,0.06) 0px 2px 4px -1px;
+  border-radius: 1.5rem;
+}
+
+#player h1 {
+  font-weight: 600;
+  font-size: x-large;
+  text-align: center;
+}
+
+#player [role="doc-subtitle"] {
+  text-align: center;
+  color: slategray;
+  margin-top: -2rem;
+}
+
+#player audio {
+  width: 100%;
+}
+
+#player p {
+  line-height: 1.5;
+}
+
+#player h2 {
+  font-size: large;
+  font-weight: 600;
+}
+
+#player aside li {
+  margin-top: 1rem;
+}
+
+.audio-play-toggle {
+  text-align: center;
+}
+
+.play-toggle {
+  background-color: whitesmoke;
+  padding: .5rem 1rem;
+  color: var(--red-400);
+  cursor: pointer;
+  margin: 0 auto;
+  border: none;
+}
+
+.play-toggle:hover,
+.play-toggle:focus {
+  background-color: lightgray;
+}
+
+.play-toggle svg {
+  fill: currentColor;
+}
+
+.play-toggle[data-state='playing'] .play {
+  display: none;
+}
+
+.play-toggle[data-state='paused'] .pause {
+  display: none;
+}
+
+.time-indicators {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.time-indicator {
+  font-feature-settings: 'tnum';
+  font-size: smaller;
+  padding: .25rem 0;
+  grid-row: 2;
+}
+
+.playback-bar {
+  margin-top: 3rem;
+}
+
+#progress {
+  display: block;
+  width: 100%;
+  appearance: none;
+  border: none;
+  background-color: lightgray;
+  height: .5rem;
+}
+
+#progress::-moz-progress-bar {
+  background-color: var(--red-400);
+}
+
+#playback-bar:hover progress::-moz-progress-bar {
+  background-color: gray;
+}
+
+#scrubber {
+  width: 100%;
+  display: block;
+  appearance: none;
+  background: transparent;
+  margin-top: -.7rem;
+  margin-left: -1px;
+}
+
+#scrubber:hover {
+  transform: scale(1.1);
+  transition: transform .2s ease-out;
+  transform-origin: center center;
+}
+
+#scrubber::-moz-range-thumb,
+#scrubber::-webkit-slider-thumb {
+  appearance: none;
+  background-color: var(--red-400);
+  border: none;
+  width: 5px;
+  height: 16px;
+  border-radius: 0;
+}
