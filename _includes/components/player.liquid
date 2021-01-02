@@ -53,7 +53,7 @@
     initial: 'initial',
     context: {
       id: settings.path,
-      currentTime: sessionStorage.getItem('currentTime-' + settings.path), // (s)
+      currentTime: sessionStorage.getItem('episode-progress-' + settings.path), // (s)
       durationTime: audio.duration, // (s)
     },
     on: {
@@ -148,13 +148,14 @@
         durationTime.innerText = formatDuration(context.durationTime)
       },
       updateScrubber: (context) => {
+        if (isNaN(context.currentTime) || isNaN(context.durationTime)) return
         // update position of the <input type="range"> element
         scrubber.value = context.currentTime / context.durationTime
         // update position of the <progress> element
         progress.value = context.currentTime / context.durationTime
       },
       storeCurrentTime: (context) => {
-        sessionStorage.setItem('currentTime-' + context.id, context.currentTime)
+        sessionStorage.setItem('episode-progress-' + context.id, context.currentTime)
       }
     }
   })
