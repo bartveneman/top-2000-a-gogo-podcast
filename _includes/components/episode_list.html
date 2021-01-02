@@ -1,0 +1,36 @@
+<div id="episodes">
+  <h2>
+    Afleveringen
+  </h2>
+  <ol>
+    {% for season in seasons %}
+      <li>
+        <h3>{{ season.name }}</h3>
+        <ol>
+          {% for episode in season.episodes %}
+            <li>
+              <h4>{{ episode.title }}</h4>
+              <p>{{ episode.description }}</p>
+              <a href="/{{ episode.path }}">
+                <span>Speel nu</span>
+              </a>
+            </li>
+          {% endfor %}
+        </ol>
+      </li>
+    {% endfor %}
+  </ol>
+</div>
+
+<script>
+  let scrollOffset = sessionStorage.getItem('episodes_offset')
+
+  if (scrollOffset) {
+    document.querySelector('#episodes > ol').scrollTop = parseInt(scrollOffset)
+  }
+
+  document.querySelector('#episodes > ol').addEventListener('scroll', function (event) {
+    scrollOffset = event.target.scrollTop
+    sessionStorage.setItem('episodes_offset', scrollOffset)
+  })
+</script>

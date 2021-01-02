@@ -1,40 +1,48 @@
 require('dotenv').config()
 const got = require('got')
 
-function fromSingleDto({ title, description, relatedMedia, mediaUri }) {
+function fromRelatedMedia(mediaUri) {
+  const [provider, type, id] = mediaUri.split(':')
+
   return {
-    title,
-    description,
-    mediaUri,
-    relatedMedia: Array.isArray(relatedMedia) ? relatedMedia.map(media => {
-      const [provider, type, id] = media.split(':');
-      return {
-        uri: media,
-        type,
-        id,
-        provider,
-      }
-    }) : [],
+    id,
+    uri: mediaUri,
+    provider,
+    type
   }
 }
 
-module.exports = async function episodes() {
+function fromDto(episodeDto) {
+  if (!episodeDto) throw new TypeError('Expected an `episodeDto');
+
+  const { title, number, description, mediaUri, relatedMedia, linkedFrom } = episodeDto
+  const [season] = linkedFrom.podcastSeasonCollection.items.map(({ seasonName, number }) => ({ name: seasonName, number }))
+
+  return {
+    title,
+    description,
+    number,
+    mediaUri,
+    relatedMedia: Array.isArray(relatedMedia) ? relatedMedia.map(fromRelatedMedia) : [],
+    path: `s${season.number}e${number}`
+  }
+}
+
+module.exports = async function seasons() {
   const query = `
     query allEpisodes {
-      podcastEpisodeCollection(order:sys_publishedAt_ASC) {
-        total
+      podcastEpisodeCollection {
         items {
           title
+          number
           description
           mediaUri
           relatedMedia
           linkedFrom {
             podcastSeasonCollection(limit: 1) {
               items {
-                sys {
-                  id
-                }
                 seasonName
+                number
               }
             }
           }
@@ -53,7 +61,8 @@ module.exports = async function episodes() {
       query
     }
   }).json()
-  return response.data.podcastEpisodeCollection.items.map(fromSingleDto)
+
+  return response.data.podcastEpisodeCollection.items.map(fromDto)
 }
 
-module.exports.fromSingleDto = fromSingleDto
+module.exports.fromDto = fromDto

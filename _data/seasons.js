@@ -1,14 +1,24 @@
+require('dotenv').config()
 const got = require('got')
-const { fromSingleDto: fromEpisodeDto } = require('./episodes')
+const { fromDto: fromEpisodeDto } = require('./episodes')
 
 function fromDto(dto) {
-  if (!dto) throw new TypeError('Expected a `seasons` object to transform')
   if (dto.total === 0) return []
 
   return dto.items.map(seasonDto => {
+    const { seasonName: name, number } = seasonDto
+
     return {
-      name: seasonDto.seasonName,
-      episodes: seasonDto.episodesCollection.items.map(fromEpisodeDto)
+      name,
+      number,
+      episodes: seasonDto.episodesCollection.items.map(episode => fromEpisodeDto({
+        ...episode,
+        linkedFrom: {
+          podcastSeasonCollection: {
+            items: [seasonDto]
+          }
+        }
+      }))
     }
   })
 }
@@ -20,13 +30,13 @@ module.exports = async function seasons() {
         total
         items {
           seasonName
+          number
           episodesCollection {
             total
             items {
+              number
               title
               description
-              mediaUri
-              relatedMedia
             }
           }
         }
@@ -44,5 +54,8 @@ module.exports = async function seasons() {
       query
     }
   }).json()
+
   return fromDto(response.data.podcastSeasonCollection)
 }
+
+module.exports.fromDto = fromDto
