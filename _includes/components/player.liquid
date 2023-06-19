@@ -19,29 +19,41 @@
       </button>
     </div>
 
-
     <div class="playback-bar">
       <progress id="progress" value="0" max="1" step="0.01"></progress>
       <input id="scrubber" type="range" value="0" max="1" step="0.001"/>
     </div>
 
     <div class="time-indicators" id="timeline">
-      <span class="time-indicator" id="currentTime">
-        <span class="sr-only">Current time:</span> 0:00:00
+      <span class="time-indicator">
+        <span class="sr-only">Current time:</span>
+        <span id="currentTime">0:00:00</span>
       </span>
-      <span class="time-indicator" id="durationTime">
-        <span class="sr-only">Total time:</span> 0:00:00
+      <span class="time-indicator">
+        <span class="sr-only">Total time:</span>
+        <span id="durationTime">0:00:00</span>
       </span>
     </div>
   </div>
+
+  <ol id="time-jumps" class="mt-16">
+    {% for media in episode.relatedMedia %}
+      <li class="grid grid-columns-6 gap-4 mt-2" id="{{ media.id }}">
+        <p class="col-span-2 row-start-1">{{ media.title }}</p>
+        <div class="text-right col-span-4 row-start-1">
+          <button data-timestamp="{{ media.timestamp }}" class="underline text-red-600">Jump to {{ media.timestamp }}</button>
+        </div>
+      </li>
+    {% endfor %}
+  </ol>
 </div>
 
-<input type="hidden" id="episode-details" value='{{ episode|json }}'>
+<input type="hidden" id="episode-id" value="{{ episode.path }}">
 
 <script type="module">
   import { createMachine, interpret, assign } from 'https://cdn.skypack.dev/xstate'
 
-  const settings = JSON.parse(document.querySelector('#episode-details').value)
+  const episode_id = document.querySelector('#episode-id').value
   const playToggle = document.querySelector('#playToggle') // <button>
   const audio = document.querySelector('audio') // <audio>
   const currentTime = document.querySelector('#currentTime') // <time>
@@ -52,8 +64,8 @@
   const machine = createMachine({
     initial: 'initial',
     context: {
-      id: settings.path,
-      currentTime: sessionStorage.getItem('episode-progress-' + settings.path), // (s)
+      id: episode_id,
+      currentTime: sessionStorage.getItem('episode-progress-' + episode_id), // (s)
       durationTime: audio.duration, // (s)
     },
     on: {
@@ -86,11 +98,12 @@
           'storeCurrentTime'
         ]
       },
-      seeked: {
+      SEEK: {
         actions: [
           assign({
-            currentTime: (context, event) => event.target.currentTime
+            currentTime: (context, event) => event.currentTime
           }),
+          'updateAudioCurrentTime',
           'renderCurrentTime',
           'updateScrubber',
           'storeCurrentTime'
@@ -117,6 +130,10 @@
             target: 'playing',
             actions: ['playAudio']
           },
+          play: {
+            target: 'playing',
+            actions: ['playAudio']
+          }
         }
       },
       playing: {
@@ -125,6 +142,10 @@
             target: 'paused',
             actions: ['pauseAudio']
           },
+          pause: {
+            target: 'paused',
+            actions: ['pauseAudio']
+          }
         }
       }
     }
@@ -186,10 +207,23 @@
   audio.addEventListener('timeupdate', service.send)
   audio.addEventListener('durationchange', service.send)
 
+  // <audio> can be controlled with Media Keys on MacOS keyboard
+  audio.addEventListener('play', service.send)
+  audio.addEventListener('pause', service.send)
+
   scrubber.addEventListener('input', event => {
     service.send({
       type: 'SCRUB',
       value: parseFloat(event.target.value)
+    })
+  })
+
+  Array.from(document.querySelectorAll('#time-jumps button')).forEach(button => {
+    button.addEventListener('click', event => {
+      service.send({
+        type: 'SEEK',
+        currentTime: parseFloat(event.target.dataset.timestamp)
+      })
     })
   })
 </script>

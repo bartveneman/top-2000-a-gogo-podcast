@@ -21,10 +21,6 @@ body {
   padding-bottom: 3rem;
 }
 
-a:not([class]) {
-  color: inherit;
-}
-
 @media (min-width: 0) {
   body {
     grid-template-columns: 1fr;
@@ -152,8 +148,13 @@ a:not([class]) {
 #episodes > ol {
   display: grid;
   grid-gap: 3rem;
-  max-height: 80vh;
-  overflow-y: auto;
+}
+
+@media (min-width: 44rem) {
+  #episodes > ol {
+    max-height: 80vh;
+    overflow-y: auto;
+  }
 }
 
 #episodes > ol > li {
